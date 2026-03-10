@@ -56,8 +56,8 @@
         "group": "Architecture",
         "pages": [
           "architecture/project-structure",
-          "architecture/routing",
           "architecture/state-management",
+          "architecture/routing",
           "architecture/composables"
         ]
       },
