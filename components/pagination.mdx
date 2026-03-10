@@ -1,0 +1,152 @@
+---
+title: Paginacion Component
+description: Navigation controls for paginating through Pokemon lists with previous and next buttons
+---
+
+The `Paginacion` component provides simple and intuitive navigation controls for paginating through lists of Pokemon. It renders "Previous" and "Next" buttons that emit events when clicked and automatically disables buttons when navigation is not available.
+
+## Component Code
+
+Here's the complete implementation of the Paginacion component:
+
+```vue Paginacion.vue
+<script setup>
+    defineProps(['inicio', 'fin'])
+    const emit = defineEmits(['prev', 'next'])
+</script>
+
+<template>
+    <button @click="emit('prev')" type="button" :disabled="!inicio">Anterior</button>
+    <button @click="emit('next')" type="button" :disabled="!fin">Siguiente</button>
+</template>
+```
+
+## Props
+
+The component accepts two props to control button states:
+
+<ParamField path="inicio" type="boolean | string">
+  Controls whether the "Previous" button is enabled. When falsy, the previous button is disabled. Typically bound to the API's `previous` field indicating if there are previous results.
+</ParamField>
+
+<ParamField path="fin" type="boolean | string">
+  Controls whether the "Next" button is enabled. When falsy, the next button is disabled. Typically bound to the API's `next` field indicating if there are more results.
+</ParamField>
+
+## Events
+
+<ParamField path="prev" type="event">
+  Emitted when the "Anterior" (Previous) button is clicked. Parent component should handle this by decreasing the offset and fetching previous results.
+</ParamField>
+
+<ParamField path="next" type="event">
+  Emitted when the "Siguiente" (Next) button is clicked. Parent component should handle this by increasing the offset and fetching next results.
+</ParamField>
+
+## Usage Example
+
+Here's how the Paginacion component is used in the PokemonsView:
+
+```vue PokemonsView.vue
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useGetData } from '@/composables/useGetData'
+import Paginacion from '@/components/Paginacion.vue'
+
+const { getData, datos } = useGetData()
+const offset = ref(0)
+const limit = ref(20)
+
+onMounted(() => {
+    fetchPokemons()
+})
+
+const fetchPokemons = () => {
+    getData(`https://pokeapi.co/api/v2/pokemon?offset=${offset.value}&limit=${limit.value}`)
+}
+
+const next = () => {
+    offset.value += limit.value
+    fetchPokemons()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+const prev = () => {
+    if (offset.value >= limit.value) {
+        offset.value -= limit.value
+        fetchPokemons()
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+}
+</script>
+
+<template>
+    <Paginacion 
+        @next="next"
+        @prev="prev"
+        :inicio="datos?.previous"
+        :fin="datos?.next"
+    />
+</template>
+```
+
+## Integration with PokeAPI
+
+The component is designed to work seamlessly with the PokeAPI pagination format:
+
+- The API returns `previous` and `next` URLs in the response
+- These URLs are passed to the component's `inicio` and `fin` props
+- When truthy, buttons are enabled; when falsy (null), buttons are disabled
+
+### API Response Example
+
+```json
+{
+  "count": 1281,
+  "next": "https://pokeapi.co/api/v2/pokemon?offset=20&limit=20",
+  "previous": "https://pokeapi.co/api/v2/pokemon?offset=0&limit=20",
+  "results": [...]
+}
+```
+
+## Behavior
+
+<AccordionGroup>
+  <Accordion title="Button States">
+    - **Previous button disabled**: When `inicio` is falsy (null/undefined) - typically on the first page
+    - **Next button disabled**: When `fin` is falsy (null/undefined) - typically on the last page
+    - **Both enabled**: When both props are truthy - user is in the middle of paginated results
+  </Accordion>
+
+  <Accordion title="Event Flow">
+    1. User clicks "Anterior" or "Siguiente" button
+    2. Component emits `prev` or `next` event
+    3. Parent component handles event by updating offset
+    4. Parent fetches new data from API
+    5. New `inicio` and `fin` values update button states
+  </Accordion>
+
+  <Accordion title="User Experience">
+    - Automatically scrolls to top when pagination changes
+    - Buttons are disabled during loading (handled by parent)
+    - Clear Spanish labels: "Anterior" (Previous) and "Siguiente" (Next)
+  </Accordion>
+</AccordionGroup>
+
+## Styling
+
+The component renders unstyled buttons, allowing parent components to apply custom styles through CSS. The buttons are standard HTML button elements that can be targeted with CSS selectors.
+
+## Best Practices
+
+<Warning>
+  Always bind the `inicio` and `fin` props to the API response fields to ensure proper button state management.
+</Warning>
+
+<Tip>
+  Combine with smooth scrolling to improve user experience when navigating between pages.
+</Tip>
+
+<Note>
+  The component uses Vue 3 Composition API with `<script setup>` for cleaner, more concise code.
+</Note>

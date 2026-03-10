@@ -1,0 +1,129 @@
+---
+title: Introduction
+description: Welcome to the Pokedex Vue 3 application - a modern, interactive Pokemon explorer built with Vue 3 and the PokeAPI
+---
+
+## Welcome to Pokedex Vue 3
+
+Pokedex Vue 3 is a comprehensive Pokemon information application that allows users to browse, search, and manage their favorite Pokemon. Built with modern web technologies, this application provides a seamless and interactive experience for Pokemon enthusiasts.
+
+<Info>
+  Live demo available at: [https://pokedex-eliasmari.netlify.app](https://pokedex-eliasmari.netlify.app)
+</Info>
+
+## What is Pokedex Vue 3?
+
+This application serves as a complete Pokemon encyclopedia, leveraging the [PokeAPI](https://pokeapi.co) to provide detailed information about Pokemon including their stats, abilities, types, and moves. Users can browse through hundreds of Pokemon, search for specific ones, and save their favorites for quick access.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Pokemon Browser" icon="grid">
+    Browse through a comprehensive list of Pokemon with pagination and customizable items per page
+  </Card>
+  
+  <Card title="Advanced Search" icon="magnifying-glass">
+    Real-time search functionality to quickly find any Pokemon by name
+  </Card>
+  
+  <Card title="Detailed Information" icon="info">
+    View complete Pokemon details including stats, abilities, types, height, weight, and movesets
+  </Card>
+  
+  <Card title="Favorites Management" icon="star">
+    Save your favorite Pokemon and access them quickly from a dedicated favorites page
+  </Card>
+</CardGroup>
+
+### Additional Features
+
+- **Type-Based Styling**: Each Pokemon card is dynamically styled based on its primary type
+- **Ability Exploration**: Click on abilities to see which other Pokemon share the same ability
+- **Responsive Design**: Fully responsive interface that works seamlessly on desktop and mobile devices
+- **Loading States**: Elegant loading indicators and error handling for better user experience
+- **Route-Based Navigation**: Clean URLs for sharing specific Pokemon pages
+
+## Technology Stack
+
+Pokedex Vue 3 is built with a modern frontend stack:
+
+<CodeGroup>
+```json package.json
+{
+  "dependencies": {
+    "axios": "^1.7.9",
+    "pinia": "^2.3.1",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "vite": "^6.0.5",
+    "vite-plugin-vue-devtools": "^7.6.8"
+  }
+}
+```
+</CodeGroup>
+
+### Core Technologies
+
+- **Vue 3**: Latest version of Vue.js with Composition API
+- **Vite**: Next-generation frontend build tool for fast development
+- **Vue Router**: Official routing library for single-page application navigation
+- **Pinia**: Modern state management solution for Vue 3
+- **Axios**: Promise-based HTTP client for API requests
+
+### Development Tools
+
+- **Vue DevTools**: Enhanced debugging with Vite plugin integration
+- **Vite HMR**: Hot Module Replacement for instant feedback during development
+
+## Architecture Overview
+
+The application follows Vue 3 best practices with a clear separation of concerns:
+
+- **Views**: Page-level components for different routes (Home, Pokemons, Pokemon Detail, Favorites, etc.)
+- **Components**: Reusable UI components (Pagination, Search, Cards)
+- **Composables**: Shared logic like `useGetData` for API calls
+- **Stores**: Centralized state management with Pinia for favorites
+- **Router**: Route configuration with lazy-loaded components
+
+<Note>
+  The application uses the Composition API with `<script setup>` syntax for cleaner and more maintainable code.
+</Note>
+
+## Why This Stack?
+
+<Steps>
+  <Step title="Performance First">
+    Vite provides lightning-fast development server startup and instant HMR, making the development experience incredibly smooth.
+  </Step>
+  
+  <Step title="Modern Vue 3">
+    Utilizing Vue 3's Composition API provides better code organization, TypeScript support, and improved performance.
+  </Step>
+  
+  <Step title="State Management">
+    Pinia offers a simpler, more intuitive API compared to Vuex, with better TypeScript integration and smaller bundle size.
+  </Step>
+  
+  <Step title="Production Ready">
+    The entire stack is production-tested and deployed on Netlify, ensuring reliability and scalability.
+  </Step>
+</Steps>
+
+## What You'll Learn
+
+By exploring this application, you'll see practical examples of:
+
+- Setting up a Vue 3 project with Vite
+- Implementing routing with Vue Router
+- Managing global state with Pinia
+- Making API calls with Axios and composables
+- Creating responsive, interactive UI components
+- Handling loading states and errors gracefully
+- Building a production-ready single-page application
+
+<Tip>
+  Ready to get started? Head over to the [Installation](/installation) guide to set up your development environment.
+</Tip>

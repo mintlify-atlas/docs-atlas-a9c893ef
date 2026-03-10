@@ -1,0 +1,344 @@
+---
+title: State Management
+description: Learn about Pinia setup and the favoritos store for managing global state in the Pokedex application
+---
+
+The Pokedex application uses Pinia for state management, providing a simple and type-safe way to manage global state across components.
+
+## Pinia Setup
+
+Pinia is initialized in the application entry point:
+
+```javascript src/main.js
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import App from './App.vue'
+import router from './router'
+
+const app = createApp(App)
+
+app.use(createPinia()) 
+app.use(router)
+
+app.mount('#app')
+```
+
+## Favoritos Store
+
+The `favoritos` store manages the user's favorite Pokemon list:
+
+```javascript src/stores/favoritos.js
+import { defineStore } from "pinia"
+import { ref } from "vue"
+
+export const useFavoritosStore = defineStore('favoritos', () => {
+  const favoritos = ref([]);
+  
+  const anyadir = (poke) => {
+    favoritos.value.push(poke.name);
+  }
+  
+  const eliminar = (poke) => {
+    favoritos.value.splice(favoritos.value.indexOf(poke), 1);
+  }
+  
+  return {
+    favoritos,
+    anyadir,
+    eliminar
+  }
+})
+```
+
+## Store Structure
+
+<AccordionGroup>
+  <Accordion title="State">
+    ### favoritos
+    
+    **Type:** `ref<Array>`
+    
+    **Description:** Array of favorite Pokemon names
+    
+    **Initial Value:** `[]`
+    
+    ```javascript
+    const favoritos = ref([]);
+    ```
+  </Accordion>
+
+  <Accordion title="Actions">
+    ### anyadir(poke)
+    
+    **Description:** Adds a Pokemon to favorites
+    
+    **Parameters:**
+    - `poke` - Pokemon object with a `name` property
+    
+    **Usage:**
+    ```javascript
+    anyadir({ name: 'pikachu' })
+    ```
+    
+    ---
+    
+    ### eliminar(poke)
+    
+    **Description:** Removes a Pokemon from favorites
+    
+    **Parameters:**
+    - `poke` - Pokemon name (string)
+    
+    **Usage:**
+    ```javascript
+    eliminar('pikachu')
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Using the Store in Components
+
+The store is used in components through the Composition API:
+
+### Basic Usage
+
+```vue src/views/PokeView.vue
+<script setup>
+import { useFavoritosStore } from '@/stores/favoritos'
+import { storeToRefs } from 'pinia'
+import { computed } from 'vue'
+
+// Get the store instance
+const useFavorito = useFavoritosStore()
+
+// Destructure actions (these remain reactive)
+const { anyadir } = useFavorito
+
+// Destructure state with storeToRefs to maintain reactivity
+const { favoritos } = storeToRefs(useFavorito)
+</script>
+```
+
+<Card title="Important: storeToRefs" icon="triangle-exclamation">
+  Always use `storeToRefs()` when destructuring state properties to preserve reactivity. Direct destructuring will lose reactivity!
+  
+  ```javascript
+  // ✅ Correct - maintains reactivity
+  const { favoritos } = storeToRefs(useFavorito)
+  
+  // ❌ Wrong - loses reactivity
+  const { favoritos } = useFavorito
+  ```
+</Card>
+
+### Adding to Favorites
+
+```vue src/views/PokeView.vue
+<script setup>
+import { useFavoritosStore } from '@/stores/favoritos'
+import { useGetData } from '@/composables/useGetData'
+
+const useFavorito = useFavoritosStore()
+const { anyadir } = useFavorito
+const { datos } = useGetData()
+
+const addToFavorites = () => {
+  anyadir(datos.value)
+  // Show notification or feedback
+}
+</script>
+
+<template>
+  <button @click="addToFavorites" class="favorite-button">
+    ☆ Añadir a favoritos
+  </button>
+</template>
+```
+
+### Checking if Pokemon is Favorite
+
+```vue src/views/PokeView.vue
+<script setup>
+import { useFavoritosStore } from '@/stores/favoritos'
+import { storeToRefs } from 'pinia'
+import { computed } from 'vue'
+
+const useFavorito = useFavoritosStore()
+const { favoritos } = storeToRefs(useFavorito)
+
+const isFavorite = computed(() => {
+  return favoritos.value.some(pokemon => pokemon.name === datos.value?.name)
+})
+</script>
+
+<template>
+  <button 
+    @click="addToFavorites" 
+    class="favorite-button"
+    :class="{ 'is-favorite': isFavorite }"
+  >
+    {{ isFavorite ? '★ En favoritos' : '☆ Añadir a favoritos' }}
+  </button>
+</template>
+```
+
+### Removing from Favorites
+
+```vue
+<script setup>
+import { useFavoritosStore } from '@/stores/favoritos'
+import { storeToRefs } from 'pinia'
+
+const useFavorito = useFavoritosStore()
+const { eliminar } = useFavorito
+const { favoritos } = storeToRefs(useFavorito)
+
+const removeFromFavorites = (pokemonName) => {
+  eliminar(pokemonName)
+}
+</script>
+
+<template>
+  <div v-for="poke in favoritos" :key="poke">
+    <span>{{ poke }}</span>
+    <button @click="removeFromFavorites(poke)">
+      Remove
+    </button>
+  </div>
+</template>
+```
+
+## Setup Syntax vs Options API
+
+This store uses Pinia's **Setup Syntax** (recommended for Vue 3):
+
+<CodeGroup>
+```javascript Setup Syntax (Current)
+export const useFavoritosStore = defineStore('favoritos', () => {
+  const favoritos = ref([])
+  
+  const anyadir = (poke) => {
+    favoritos.value.push(poke.name)
+  }
+  
+  return { favoritos, anyadir }
+})
+```
+
+```javascript Options API Alternative
+export const useFavoritosStore = defineStore('favoritos', {
+  state: () => ({
+    favoritos: []
+  }),
+  
+  actions: {
+    anyadir(poke) {
+      this.favoritos.push(poke.name)
+    }
+  }
+})
+```
+</CodeGroup>
+
+## State Persistence
+
+<Card title="Current Limitation" icon="circle-info">
+  The current implementation does not persist favorites across page refreshes. Favorites are stored only in memory.
+  
+  To add persistence, consider using:
+  - **localStorage** via Pinia plugins
+  - **sessionStorage** for session-only persistence
+  - **Backend API** for cross-device synchronization
+</Card>
+
+### Example: Adding Persistence
+
+```javascript
+import { defineStore } from "pinia"
+import { ref, watch } from "vue"
+
+export const useFavoritosStore = defineStore('favoritos', () => {
+  // Load from localStorage on initialization
+  const stored = localStorage.getItem('favoritos')
+  const favoritos = ref(stored ? JSON.parse(stored) : [])
+  
+  // Save to localStorage on changes
+  watch(favoritos, (newFavoritos) => {
+    localStorage.setItem('favoritos', JSON.stringify(newFavoritos))
+  }, { deep: true })
+  
+  const anyadir = (poke) => {
+    favoritos.value.push(poke.name)
+  }
+  
+  const eliminar = (poke) => {
+    favoritos.value.splice(favoritos.value.indexOf(poke), 1)
+  }
+  
+  return { favoritos, anyadir, eliminar }
+})
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use storeToRefs for State">
+    Always destructure state with `storeToRefs()` to maintain reactivity:
+    
+    ```javascript
+    const { favoritos } = storeToRefs(useFavoritosStore())
+    ```
+  </Accordion>
+
+  <Accordion title="Direct Action Destructuring">
+    Actions can be destructured directly without losing reactivity:
+    
+    ```javascript
+    const { anyadir, eliminar } = useFavoritosStore()
+    ```
+  </Accordion>
+
+  <Accordion title="Single Store Instance">
+    Store instances are automatically singletons. Multiple calls to `useFavoritosStore()` return the same instance:
+    
+    ```javascript
+    const store1 = useFavoritosStore()
+    const store2 = useFavoritosStore()
+    // store1 === store2 (same instance)
+    ```
+  </Accordion>
+
+  <Accordion title="Validate Before Mutating">
+    Always validate data before mutating the store:
+    
+    ```javascript
+    const anyadir = (poke) => {
+      if (!poke?.name) return
+      if (favoritos.value.includes(poke.name)) return
+      favoritos.value.push(poke.name)
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Store DevTools
+
+<Card title="Vue DevTools Integration" icon="bug">
+  Pinia integrates with Vue DevTools for debugging:
+  
+  - View current state
+  - Track state mutations
+  - Time-travel debugging
+  - Action history
+</Card>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Composables" icon="puzzle-piece" href="/architecture/composables">
+    Learn about reusable composition functions
+  </Card>
+  <Card title="Routing" icon="route" href="/architecture/routing">
+    Understand route configuration and navigation
+  </Card>
+</CardGroup>

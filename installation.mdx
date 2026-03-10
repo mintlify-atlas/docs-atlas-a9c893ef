@@ -1,0 +1,222 @@
+---
+title: Installation
+description: Step-by-step guide to install and set up the Pokedex Vue 3 application on your local machine
+---
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed on your system:
+
+<CardGroup cols={2}>
+  <Card title="Node.js" icon="node">
+    Version 16.x or higher recommended
+  </Card>
+  
+  <Card title="npm" icon="box">
+    Comes bundled with Node.js
+  </Card>
+  
+  <Card title="Git" icon="git">
+    For cloning the repository
+  </Card>
+  
+  <Card title="Code Editor" icon="code">
+    VSCode recommended with Volar extension
+  </Card>
+</CardGroup>
+
+<Info>
+  **Recommended IDE Setup**: [VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar)
+  
+  Make sure to disable Vetur if you have it installed, as it conflicts with Volar.
+</Info>
+
+## Installation Steps
+
+<Steps>
+  <Step title="Verify Node.js Installation">
+    First, verify that Node.js and npm are installed correctly:
+    
+    ```bash
+    node --version
+    npm --version
+    ```
+    
+    You should see version numbers for both commands. If not, [download and install Node.js](https://nodejs.org/).
+  </Step>
+  
+  <Step title="Clone the Repository">
+    Clone the Pokedex Vue 3 repository to your local machine:
+    
+    ```bash
+    git clone <repository-url>
+    cd router
+    ```
+    
+    <Note>
+      Replace `<repository-url>` with the actual repository URL. The project folder is named "router".
+    </Note>
+  </Step>
+  
+  <Step title="Install Dependencies">
+    Install all required npm packages:
+    
+    ```bash
+    npm install
+    ```
+    
+    This will install all dependencies listed in `package.json`, including:
+    
+    - **Vue 3** (^3.5.13): Core framework
+    - **Vue Router** (^4.5.0): Routing solution
+    - **Pinia** (^2.3.1): State management
+    - **Axios** (^1.7.9): HTTP client
+    - **Vite** (^6.0.5): Build tool
+    - **Vue DevTools** (^7.6.8): Development tools
+  </Step>
+  
+  <Step title="Verify Installation">
+    After installation completes, verify that all packages were installed correctly:
+    
+    ```bash
+    npm list --depth=0
+    ```
+    
+    This will show all top-level dependencies installed in your project.
+  </Step>
+</Steps>
+
+## Project Structure
+
+After installation, your project structure should look like this:
+
+```plaintext
+router/
+├── public/              # Static assets
+├── src/
+│   ├── assets/          # Images, styles, and other assets
+│   ├── components/      # Reusable Vue components
+│   │   ├── Favoritos.vue
+│   │   ├── HelloWorld.vue
+│   │   ├── NumPost.vue
+│   │   ├── Paginacion.vue
+│   │   ├── TheWelcome.vue
+│   │   ├── VolverPokemons.vue
+│   │   └── icons/       # Icon components
+│   ├── composables/     # Composition API utilities
+│   │   └── useGetData.js
+│   ├── router/          # Vue Router configuration
+│   │   └── index.js
+│   ├── stores/          # Pinia stores
+│   │   └── favoritos.js
+│   ├── views/           # Page components
+│   │   ├── HomeView.vue
+│   │   ├── AboutView.vue
+│   │   ├── PokemonsView.vue
+│   │   ├── PokeView.vue
+│   │   ├── FavoritosView.vue
+│   │   ├── HabilidadView.vue
+│   │   ├── NotFoundView.vue
+│   │   └── PokeNotFountView.vue
+│   ├── App.vue          # Root component
+│   └── main.js          # Application entry point
+├── index.html           # HTML template
+├── package.json         # Dependencies and scripts
+├── vite.config.js       # Vite configuration
+└── README.md            # Project documentation
+```
+
+## Configuration Files
+
+### Vite Configuration
+
+The project uses Vite as its build tool. Here's the configuration from `vite.config.js`:
+
+```javascript vite.config.js
+import { fileURLToPath, URL } from 'node:url'
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import vueDevTools from 'vite-plugin-vue-devtools'
+
+export default defineConfig({
+  plugins: [
+    vue(),
+    vueDevTools(),
+  ],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url))
+    },
+  },
+})
+```
+
+<Note>
+  The `@` alias is configured to point to the `src/` directory, allowing you to use `@/components/...` instead of relative paths.
+</Note>
+
+### Application Entry Point
+
+The main application setup in `src/main.js`:
+
+```javascript src/main.js
+import './assets/main.css'
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import App from './App.vue'
+import router from './router'
+
+const app = createApp(App)
+
+app.use(createPinia())
+app.use(router)
+
+app.mount('#app')
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="npm install fails">
+    If you encounter errors during installation:
+    
+    1. Clear npm cache: `npm cache clean --force`
+    2. Delete `node_modules` and `package-lock.json`
+    3. Run `npm install` again
+    
+    If problems persist, try using a different Node.js version with [nvm](https://github.com/nvm-sh/nvm).
+  </Accordion>
+  
+  <Accordion title="Port already in use">
+    If the default Vite port (5173) is already in use, Vite will automatically try the next available port. You can also specify a custom port in `vite.config.js`:
+    
+    ```javascript
+    export default defineConfig({
+      server: {
+        port: 3000
+      },
+      // ... other config
+    })
+    ```
+  </Accordion>
+  
+  <Accordion title="Volar extension not working">
+    Make sure:
+    
+    1. You've disabled the Vetur extension if installed
+    2. You've reloaded VSCode after installing Volar
+    3. The workspace is using the correct TypeScript version
+  </Accordion>
+</AccordionGroup>
+
+<Warning>
+  **Important**: Always disable Vetur when using Volar, as they conflict with each other and can cause unexpected behavior.
+</Warning>
+
+## Next Steps
+
+Now that you have everything installed, you're ready to run the application!
+
+<Card title="Quick Start Guide" icon="rocket" href="/quick-start">
+  Learn how to run the development server and build for production
+</Card>

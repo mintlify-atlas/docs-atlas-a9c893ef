@@ -1,0 +1,360 @@
+---
+title: Quick Start
+description: Get the Pokedex Vue 3 application up and running in minutes with this quick start guide
+---
+
+## Getting Started
+
+This guide will help you get the Pokedex application running on your local machine quickly. Make sure you've completed the [Installation](/installation) steps before proceeding.
+
+## Development Server
+
+<Steps>
+  <Step title="Start the Development Server">
+    Run the following command in your project directory:
+    
+    ```bash
+    npm run dev
+    ```
+    
+    This starts the Vite development server with hot module replacement (HMR) enabled.
+  </Step>
+  
+  <Step title="Open in Browser">
+    Once the server starts, you'll see output similar to:
+    
+    ```bash
+    VITE v6.0.5  ready in 432 ms
+    
+    ➜  Local:   http://localhost:5173/
+    ➜  Network: use --host to expose
+    ➜  press h + enter to show help
+    ```
+    
+    Open your browser and navigate to `http://localhost:5173/`
+  </Step>
+  
+  <Step title="Explore the Application">
+    You should now see the Pokedex application running! The home page displays a welcome screen with navigation links.
+  </Step>
+</Steps>
+
+<Info>
+  Vite provides instant Hot Module Replacement (HMR), so any changes you make to the code will be reflected in the browser immediately without a full page reload.
+</Info>
+
+## Application Features
+
+Once the application is running, you can explore the following features:
+
+### Navigation Menu
+
+The application includes a top navigation bar with the following routes:
+
+<CardGroup cols={2}>
+  <Card title="Home" icon="house">
+    Welcome page with general information
+  </Card>
+  
+  <Card title="About" icon="circle-info">
+    Information about the application
+  </Card>
+  
+  <Card title="Pokemons" icon="list">
+    Browse all Pokemon with search and pagination
+  </Card>
+  
+  <Card title="Favoritos" icon="star">
+    View your saved favorite Pokemon
+  </Card>
+</CardGroup>
+
+### Pokemon Browser
+
+Navigate to `/pokemons` to access the main Pokemon browser:
+
+<Steps>
+  <Step title="Browse Pokemon">
+    The Pokemon grid displays 20 Pokemon by default with official artwork images.
+  </Step>
+  
+  <Step title="Search Pokemon">
+    Use the search bar to filter Pokemon by name in real-time:
+    
+    ```javascript src/views/PokemonsView.vue
+    const searchQuery = ref('');
+    
+    const filteredPokemons = computed(() => {
+      if (!datos.value?.results) return [];
+      
+      if (searchQuery.value.trim() === '') {
+        return datos.value.results;
+      }
+      
+      const query = searchQuery.value.toLowerCase();
+      return allPokemons.value.filter(pokemon => 
+        pokemon.name.toLowerCase().includes(query)
+      );
+    });
+    ```
+  </Step>
+  
+  <Step title="Adjust Pagination">
+    Use the items per page selector to display 10, 20, or 50 Pokemon at a time.
+  </Step>
+  
+  <Step title="Navigate Pages">
+    Use the Previous/Next buttons to browse through pages of Pokemon.
+  </Step>
+</Steps>
+
+### Pokemon Details
+
+Click on any Pokemon card to view detailed information:
+
+<Tabs>
+  <Tab title="About Tab">
+    - Height and weight measurements
+    - Abilities (clickable to see other Pokemon with same ability)
+    - Pokemon number and types
+  </Tab>
+  
+  <Tab title="Stats Tab">
+    - HP, Attack, Defense
+    - Special Attack, Special Defense
+    - Speed
+    - Visual stat bars color-coded by Pokemon type
+  </Tab>
+  
+  <Tab title="Moves Tab">
+    - First 20 moves the Pokemon can learn
+    - Formatted and capitalized move names
+  </Tab>
+</Tabs>
+
+### Favorites System
+
+The application uses Pinia for state management to handle favorites:
+
+```javascript src/stores/favoritos.js
+import { defineStore } from "pinia";
+import { ref } from "vue"
+
+export const useFavoritosStore = defineStore('favoritos',()=>{
+  const favoritos=ref([]);
+  
+  const anyadir = (poke)=>{
+    favoritos.value.push(poke.name);
+  }
+  
+  const eliminar = (poke)=>{
+    favoritos.value.splice(favoritos.value.indexOf(poke),1);
+  }
+  
+  return {
+    favoritos,
+    anyadir,
+    eliminar
+  }
+})
+```
+
+<Steps>
+  <Step title="Add to Favorites">
+    Click the "Añadir a favoritos" button on any Pokemon detail page.
+  </Step>
+  
+  <Step title="View Favorites">
+    Navigate to the Favoritos page to see all your saved Pokemon.
+  </Step>
+  
+  <Step title="Remove from Favorites">
+    Click "Quitar de favoritos" on any card in the Favorites page.
+  </Step>
+</Steps>
+
+## Building for Production
+
+When you're ready to build the application for production:
+
+<Steps>
+  <Step title="Run Build Command">
+    ```bash
+    npm run build
+    ```
+    
+    This command compiles and minifies the application for production deployment.
+  </Step>
+  
+  <Step title="Preview Production Build">
+    Test the production build locally:
+    
+    ```bash
+    npm run preview
+    ```
+    
+    This serves the production build on a local server for testing.
+  </Step>
+  
+  <Step title="Deploy">
+    The built files will be in the `dist/` directory, ready to deploy to any static hosting service like Netlify, Vercel, or GitHub Pages.
+  </Step>
+</Steps>
+
+<Note>
+  The production build is optimized with:
+  - Code splitting for better performance
+  - Minified JavaScript and CSS
+  - Optimized asset loading
+  - Tree-shaking to remove unused code
+</Note>
+
+## Available Scripts
+
+Here are all the npm scripts available in the project:
+
+```json package.json
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
+}
+```
+
+<CardGroup cols={3}>
+  <Card title="dev" icon="code">
+    Starts the Vite development server with HMR
+  </Card>
+  
+  <Card title="build" icon="hammer">
+    Builds the app for production to `dist/` folder
+  </Card>
+  
+  <Card title="preview" icon="eye">
+    Previews the production build locally
+  </Card>
+</CardGroup>
+
+## Development Tips
+
+<Tip>
+  **Vue DevTools**: Install the Vue DevTools browser extension for enhanced debugging. The project includes `vite-plugin-vue-devtools` for an even better development experience.
+</Tip>
+
+### Hot Module Replacement
+
+Vite's HMR is extremely fast. When you save changes:
+
+- Vue components update instantly
+- State is preserved when possible
+- No full page reload needed
+
+### Path Aliases
+
+The project uses `@` as an alias for the `src/` directory:
+
+```javascript
+// Instead of this:
+import Component from '../../../components/Component.vue'
+
+// You can write:
+import Component from '@/components/Component.vue'
+```
+
+### Composables Pattern
+
+The application uses composables for shared logic. For example, API calls:
+
+```javascript src/composables/useGetData.js
+import axios from 'axios'
+import { ref } from 'vue'
+
+export const useGetData=()=>{
+  const datos=ref(null);
+  const cargando = ref(true);
+  const error = ref(false);
+
+  const getData = async (url) => {
+    try {
+      const resultado = await axios.get(url);
+      datos.value = resultado.data;
+    }
+    catch (err) {
+      console.log(err);
+      error.value = true;
+    } finally {
+      cargando.value = false;
+    }
+  };
+  
+  return {
+    getData,
+    datos,
+    error,
+    cargando
+  }
+};
+```
+
+Use it in your components:
+
+```javascript
+import { useGetData } from '@/composables/useGetData';
+
+const { getData, datos, error, cargando } = useGetData();
+getData('https://pokeapi.co/api/v2/pokemon/pikachu');
+```
+
+## Live Demo
+
+<Card 
+  title="View Live Application" 
+  icon="globe" 
+  href="https://pokedex-eliasmari.netlify.app"
+>
+  Check out the live deployed version of this application on Netlify
+</Card>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Development server won't start">
+    - Check if port 5173 is already in use
+    - Verify Node.js version is 16.x or higher
+    - Try deleting `node_modules` and running `npm install` again
+  </Accordion>
+  
+  <Accordion title="Pokemon images not loading">
+    - Check your internet connection (images are loaded from PokeAPI)
+    - The app includes fallback images for failed loads
+    - Open browser console to check for specific errors
+  </Accordion>
+  
+  <Accordion title="Favorites not persisting">
+    Favorites are stored in memory and will reset when you refresh the page. To persist favorites, you could:
+    - Add localStorage support to the Pinia store
+    - Implement a backend API for user accounts
+  </Accordion>
+  
+  <Accordion title="HMR not working">
+    - Ensure you're using a modern browser
+    - Check for any console errors
+    - Try restarting the dev server
+    - Clear browser cache
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+Now that you have the application running, explore the codebase to learn more:
+
+- Study the router configuration in `src/router/index.js`
+- Examine component composition in the views
+- Learn about Pinia stores in `src/stores/favoritos.js`
+- Experiment with adding new features!
+
+<Warning>
+  Remember that the favorites feature stores data in memory only. Refreshing the page will clear your saved favorites.
+</Warning>

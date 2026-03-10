@@ -1,0 +1,176 @@
+---
+title: Search & Filter
+description: Real-time Pokemon search functionality that filters across all 1000+ Pokemon
+---
+
+The search feature allows users to quickly find Pokemon by name with instant, real-time filtering.
+
+## Overview
+
+The search system provides:
+
+- Real-time filtering as you type
+- Case-insensitive search
+- Searches across all 1000+ Pokemon
+- Instant results with no delay
+- Clean, focused search interface
+
+## Search Input Component
+
+The search input is prominently displayed at the top of the Pokedex:
+
+```vue
+<div class="search-container">
+    <input 
+        type="text" 
+        v-model="searchQuery" 
+        placeholder="Buscar Pokémon..."
+        class="search-input"
+    >
+</div>
+```
+
+## Search Implementation
+
+The search functionality uses Vue's reactive system for instant filtering:
+
+```javascript
+import { ref, computed } from 'vue';
+
+const searchQuery = ref('');
+const allPokemons = ref([]);
+
+// Fetch all Pokemon names for searching
+const fetchAllPokemons = async () => {
+    try {
+        const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=1000');
+        const data = await response.json();
+        allPokemons.value = data.results;
+    } catch (err) {
+        console.error('Error fetching all pokemons:', err);
+    }
+};
+```
+
+## Filtering Logic
+
+The filtered results are computed reactively using Vue's `computed` property:
+
+```javascript
+const filteredPokemons = computed(() => {
+    if (!datos.value?.results) return [];
+    
+    if (searchQuery.value.trim() === '') {
+        return datos.value.results;
+    }
+    
+    const query = searchQuery.value.toLowerCase();
+    return allPokemons.value.filter(pokemon => 
+        pokemon.name.toLowerCase().includes(query)
+    );
+});
+```
+
+<Info>
+When the search query is empty, the component displays the paginated results. When searching, it displays all matching Pokemon from the complete dataset.
+</Info>
+
+## How It Works
+
+<Steps>
+  <Step title="Initial Load">
+    On component mount, the app fetches all 1000+ Pokemon names for search indexing while displaying the first paginated page.
+  </Step>
+  <Step title="User Types">
+    As the user types, the `searchQuery` ref updates automatically thanks to `v-model`.
+  </Step>
+  <Step title="Instant Filter">
+    The `filteredPokemons` computed property recalculates immediately, filtering the complete Pokemon list.
+  </Step>
+  <Step title="Display Results">
+    The template renders the filtered results in the same grid layout used for browsing.
+  </Step>
+</Steps>
+
+## Search Input Styling
+
+The search input features a clean, focused design with smooth transitions:
+
+```css
+.search-input {
+    width: 100%;
+    max-width: 400px;
+    padding: 12px 20px;
+    font-size: 1rem;
+    background-color: #2d3748;
+    color: #e2e8f0;
+    border: 2px solid #4a5568;
+    border-radius: 25px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    border-color: #63b3ed;
+    box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.3);
+    background-color: #2d3748;
+}
+
+.search-input::placeholder {
+    color: #a0aec0;
+}
+```
+
+## Search Performance
+
+<Tabs>
+  <Tab title="Initial Load">
+    The component fetches all Pokemon names once on mount, creating a complete searchable index.
+    
+    ```javascript
+    onMounted(async () => {
+        await fetchAllPokemons();
+        fetchPokemons();
+    });
+    ```
+  </Tab>
+  <Tab title="Search Speed">
+    Filtering happens client-side using JavaScript's native `filter` method, providing instant results with no network delay.
+    
+    The search is case-insensitive and uses `includes()` for partial matching.
+  </Tab>
+  <Tab title="Memory Usage">
+    Only Pokemon names and URLs are stored in memory (~1000 small objects), keeping the memory footprint minimal.
+  </Tab>
+</Tabs>
+
+<Note>
+The search performs partial string matching, so searching for "char" will match "Charmander", "Charizard", and "Charmeleon".
+</Note>
+
+## Integration with Pagination
+
+When a search query is active, pagination is effectively bypassed to show all matching results:
+
+- **No search query**: Shows paginated results (20, 50, or 100 per page)
+- **Active search**: Shows all matching Pokemon from the complete dataset
+- **Clear search**: Returns to paginated view
+
+## User Experience Features
+
+- **Focus state**: The input has a prominent blue glow when focused
+- **Placeholder text**: Clear instruction "Buscar Pokémon..."
+- **Instant feedback**: Results update as you type with no debounce delay
+- **Case insensitive**: Searches work regardless of capitalization
+- **Partial matching**: Find Pokemon with partial name matches
+
+## Related Features
+
+<CardGroup cols={2}>
+  <Card title="Pokemon Browser" icon="grid" href="/features/pokemon-browser">
+    Main grid view with pagination
+  </Card>
+  <Card title="Ability Explorer" icon="wand-magic-sparkles" href="/features/ability-explorer">
+    Filter Pokemon by their abilities
+  </Card>
+</CardGroup>

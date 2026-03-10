@@ -1,0 +1,167 @@
+---
+title: Pokemon Browser
+description: Browse through the complete Pokedex with a responsive grid layout and pagination controls
+---
+
+The Pokemon Browser is the main view of the application, displaying Pokemon in a beautiful grid layout with pagination and responsive design.
+
+## Overview
+
+The browser provides a comprehensive view of all Pokemon, organized in a grid with:
+
+- Responsive grid layout that adapts to screen size
+- Official Pokemon artwork for each entry
+- Pokemon names and numbers
+- Click-to-navigate to detailed views
+- Pagination controls for browsing
+- Adjustable results per page
+
+## Grid Layout
+
+The Pokemon are displayed in a responsive CSS Grid that automatically adjusts columns based on screen width:
+
+```vue
+<div class="pokemon-grid">
+    <router-link 
+        v-for="poke in filteredPokemons" 
+        :key="poke.name"
+        :to="`/pokemons/${poke.name}`"
+        class="pokemon-card"
+    >
+        <div class="pokemon-image">
+            <img 
+                :src="`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${poke.url.split('/')[6]}.png`" 
+                :alt="poke.name"
+                @error="$event.target.src='https://via.placeholder.com/150?text=?'"
+            >
+        </div>
+        <div class="pokemon-info">
+            <h3>{{ poke.name.charAt(0).toUpperCase() + poke.name.slice(1) }}</h3>
+            <span class="pokemon-number">#{{ ('000' + poke.url.split('/')[6]).slice(-3) }}</span>
+        </div>
+    </router-link>
+</div>
+```
+
+## Pagination System
+
+The browser implements pagination using offset and limit parameters:
+
+```javascript
+const offset = ref(0);
+const limit = ref(20);
+
+const fetchPokemons = () => {
+    getData(`https://pokeapi.co/api/v2/pokemon?offset=${offset.value}&limit=${limit.value}`);
+};
+
+const next = () => {
+    offset.value += limit.value;
+    fetchPokemons();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+const prev = () => {
+    if (offset.value >= limit.value) {
+        offset.value -= limit.value;
+        fetchPokemons();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+};
+```
+
+<Info>
+The pagination automatically scrolls to the top when navigating between pages for better UX.
+</Info>
+
+## Adjustable Results
+
+Users can change how many Pokemon are displayed per page:
+
+```javascript
+const cambio = (num) => {
+    limit.value = parseInt(num);
+    offset.value = 0;
+    fetchPokemons();
+};
+```
+
+## Responsive Design
+
+The grid layout adapts to different screen sizes:
+
+```css
+.pokemon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    .pokemon-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+}
+```
+
+## Card Styling
+
+Each Pokemon card features hover effects and smooth transitions:
+
+```css
+.pokemon-card {
+    background: #2d3748;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+    text-decoration: none;
+    color: #f7fafc;
+    border: 1px solid #4a5568;
+}
+
+.pokemon-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    background: #3c4a62;
+    border-color: #63b3ed;
+}
+```
+
+<Note>
+The image component includes error handling that displays a placeholder if the Pokemon image fails to load.
+</Note>
+
+## Loading States
+
+The browser displays a loading spinner while fetching data:
+
+```vue
+<div v-if="cargando" class="loading">
+    <div class="spinner"></div>
+    <p>Cargando Pokémons...</p>
+</div>
+
+<div v-else-if="error" class="error">
+    <p>Error al cargar los Pokémons. Inténtalo de nuevo más tarde.</p>
+</div>   
+
+<div v-else class="pokemon-grid">
+    <!-- Pokemon cards -->
+</div>
+```
+
+## Related Features
+
+<CardGroup cols={2}>
+  <Card title="Search & Filter" icon="magnifying-glass" href="/features/search-filter">
+    Filter Pokemon in real-time as you type
+  </Card>
+  <Card title="Pokemon Details" icon="info-circle" href="/features/pokemon-details">
+    View detailed information about each Pokemon
+  </Card>
+</CardGroup>

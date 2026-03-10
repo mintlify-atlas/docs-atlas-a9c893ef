@@ -1,0 +1,302 @@
+---
+title: Favoritos Component
+description: Display and manage favorite Pokemon with integration to Pinia store
+---
+
+The `Favoritos` component (implemented in FavoritosView) provides a comprehensive interface for displaying and managing favorite Pokemon. It integrates with the Pinia favorites store to maintain persistent state and fetches full Pokemon data from the PokeAPI.
+
+## Component Overview
+
+While named "Favoritos", this functionality is implemented as a full view component that:
+
+- Displays a grid of favorite Pokemon with images and details
+- Fetches complete Pokemon data from PokeAPI for each favorite
+- Allows users to remove Pokemon from their favorites
+- Shows an empty state when no favorites exist
+- Integrates with Pinia store for state management
+
+## Component Code
+
+Here's the complete implementation of the Favoritos view:
+
+```vue FavoritosView.vue
+<script setup>
+import { storeToRefs } from "pinia"
+import { useFavoritosStore } from '@/stores/favoritos'
+import { ref, onMounted } from 'vue'
+
+const useFavoritos = useFavoritosStore()
+const { eliminar } = useFavoritos
+const { favoritos } = storeToRefs(useFavoritos)
+const pokemons = ref([])
+
+const cargarFavoritos = async () => {
+    pokemons.value = [] // Clear array before loading
+    for (const name of favoritos.value) {
+        try {
+            const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}`)
+            const data = await response.json()
+            pokemons.value.push({
+                name: data.name,
+                image: data.sprites.other['official-artwork'].front_default || data.sprites.front_default,
+                id: data.id
+            })
+        } catch (error) {
+            console.error(`Error cargando datos de ${name}:`, error)
+        }
+    }
+}
+
+const eliminarFavorito = async (pokemonName) => {
+    eliminar(pokemonName)
+    await cargarFavoritos() // Reload list after removing
+}
+
+onMounted(cargarFavoritos)
+</script>
+
+<template>
+    <div class="favoritos-container">
+        <h1>Mis Pokémon Favoritos</h1>
+        <div v-if="pokemons.length === 0" class="empty-state">
+            <p>No tienes ningún Pokémon en favoritos</p>
+        </div>
+        <div v-else class="pokemon-grid">
+            <div v-for="pokemon in pokemons" :key="pokemon.name" class="pokemon-card">
+                <RouterLink :to="`/pokemons/${pokemon.name}`" class="pokemon-link">
+                    <img :src="pokemon.image" :alt="pokemon.name" class="pokemon-image" />
+                    <h3 class="pokemon-name">{{ pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1) }}</h3>
+                    <p class="pokemon-id">#{{ String(pokemon.id).padStart(3, '0') }}</p>
+                </RouterLink>
+                <button @click="eliminarFavorito(pokemon.name)" class="remove-button">
+                    <span class="material-icons">♡</span> Quitar de favoritos
+                </button>
+            </div>
+        </div>
+    </div>
+</template>
+```
+
+## Pinia Store Integration
+
+The component relies on the Favoritos Pinia store for state management:
+
+<ParamField path="useFavoritosStore" type="store">
+  Pinia store that manages the favorites list. Provides actions like `eliminar()` for removing favorites and reactive state via `favoritos` array.
+</ParamField>
+
+<ParamField path="favoritos" type="ref<string[]>">
+  Reactive array of Pokemon names stored as favorites. Extracted from the store using `storeToRefs()` to maintain reactivity.
+</ParamField>
+
+<ParamField path="eliminar" type="function">
+  Action from the store that removes a Pokemon from the favorites list by name.
+</ParamField>
+
+## Local State
+
+<ParamField path="pokemons" type="ref<Array>">
+  Local reactive array storing full Pokemon data fetched from the API. Each object contains:
+  - `name`: Pokemon name (string)
+  - `image`: URL to Pokemon artwork (string)
+  - `id`: Pokemon ID number (number)
+</ParamField>
+
+## Methods
+
+### cargarFavoritos()
+
+Asynchronously loads full Pokemon data for all favorites:
+
+```javascript
+const cargarFavoritos = async () => {
+    pokemons.value = [] // Clear array before loading
+    for (const name of favoritos.value) {
+        try {
+            const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}`)
+            const data = await response.json()
+            pokemons.value.push({
+                name: data.name,
+                image: data.sprites.other['official-artwork'].front_default || data.sprites.front_default,
+                id: data.id
+            })
+        } catch (error) {
+            console.error(`Error cargando datos de ${name}:`, error)
+        }
+    }
+}
+```
+
+**Features**:
+- Clears existing data before loading
+- Fetches official artwork (high quality) with fallback to standard sprite
+- Handles errors gracefully with console logging
+- Runs on component mount
+
+### eliminarFavorito()
+
+Removes a Pokemon from favorites and reloads the list:
+
+```javascript
+const eliminarFavorito = async (pokemonName) => {
+    eliminar(pokemonName)
+    await cargarFavoritos() // Reload list after removing
+}
+```
+
+**Features**:
+- Calls store action to remove from favorites
+- Reloads the display list to show updated favorites
+- Prevents stale UI state
+
+## Template Features
+
+<Tabs>
+  <Tab title="Empty State">
+    ```vue
+    <div v-if="pokemons.length === 0" class="empty-state">
+        <p>No tienes ningún Pokémon en favoritos</p>
+    </div>
+    ```
+    
+    Shows a friendly message when the favorites list is empty.
+  </Tab>
+  
+  <Tab title="Pokemon Grid">
+    ```vue
+    <div v-else class="pokemon-grid">
+        <div v-for="pokemon in pokemons" :key="pokemon.name" class="pokemon-card">
+            <!-- Card content -->
+        </div>
+    </div>
+    ```
+    
+    Responsive grid layout that adapts to different screen sizes.
+  </Tab>
+  
+  <Tab title="Pokemon Card">
+    ```vue
+    <RouterLink :to="`/pokemons/${pokemon.name}`" class="pokemon-link">
+        <img :src="pokemon.image" :alt="pokemon.name" class="pokemon-image" />
+        <h3 class="pokemon-name">
+            {{ pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1) }}
+        </h3>
+        <p class="pokemon-id">#{{ String(pokemon.id).padStart(3, '0') }}</p>
+    </RouterLink>
+    <button @click="eliminarFavorito(pokemon.name)" class="remove-button">
+        <span class="material-icons">♡</span> Quitar de favoritos
+    </button>
+    ```
+    
+    Each card is clickable (navigates to detail page) with a remove button.
+  </Tab>
+</Tabs>
+
+## Usage in Application
+
+The Favoritos view is typically accessed via routing:
+
+```javascript
+// router/index.js
+{
+  path: '/favoritos',
+  name: 'favoritos',
+  component: () => import('@/views/FavoritosView.vue')
+}
+```
+
+Users can navigate to it from the main navigation menu:
+
+```vue
+<RouterLink to="/favoritos">Mis Favoritos</RouterLink>
+```
+
+## Data Flow
+
+<Steps>
+  <Step title="Component Mounts">
+    The `onMounted` hook triggers `cargarFavoritos()`
+  </Step>
+  
+  <Step title="Load Favorites">
+    Function retrieves favorite Pokemon names from Pinia store
+  </Step>
+  
+  <Step title="Fetch Data">
+    For each favorite, fetch full Pokemon data from PokeAPI
+  </Step>
+  
+  <Step title="Display Grid">
+    Render Pokemon cards with images, names, and IDs
+  </Step>
+  
+  <Step title="User Interaction">
+    User clicks "Quitar de favoritos" button
+  </Step>
+  
+  <Step title="Update Store">
+    `eliminarFavorito()` calls store action to remove Pokemon
+  </Step>
+  
+  <Step title="Reload Display">
+    Function reloads the list to show updated favorites
+  </Step>
+</Steps>
+
+## Styling Features
+
+The component includes comprehensive styling:
+
+- **Responsive Grid**: Adapts from 200px columns on desktop to 150px on mobile
+- **Card Hover Effects**: Transform and shadow effects on hover
+- **Image Scaling**: Pokemon images scale up on card hover
+- **Remove Button**: Full-width button at bottom of each card
+- **Empty State**: Centered message with appropriate spacing
+
+## Best Practices
+
+<Warning>
+  Always reload the favorites list after removing an item to prevent showing stale data.
+</Warning>
+
+<Tip>
+  Use the official artwork URL for better visual quality, but always provide a fallback to the standard sprite.
+</Tip>
+
+<Note>
+  The component handles API errors gracefully by logging to console and continuing to load other Pokemon.
+</Note>
+
+## Error Handling
+
+The component implements robust error handling:
+
+```javascript
+try {
+    const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}`)
+    const data = await response.json()
+    // Process data
+} catch (error) {
+    console.error(`Error cargando datos de ${name}:`, error)
+    // Continue loading other Pokemon
+}
+```
+
+This ensures that if one Pokemon fails to load, others can still be displayed.
+
+## Performance Considerations
+
+- **Sequential Loading**: Pokemon are loaded one at a time in a loop
+- **Array Clearing**: The pokemons array is cleared before loading to prevent duplicates
+- **Store Reactivity**: Uses `storeToRefs()` to maintain reactivity when extracting store state
+- **Conditional Rendering**: Only renders the grid when pokemons exist
+
+## Future Enhancements
+
+Potential improvements:
+
+- Parallel loading of Pokemon data using `Promise.all()`
+- Loading indicators while fetching data
+- Drag-and-drop reordering of favorites
+- Bulk remove functionality
+- Export/import favorites list

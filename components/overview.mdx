@@ -1,0 +1,100 @@
+---
+title: Components Overview
+description: Overview of all reusable Vue components in the Pokedex application
+---
+
+The Pokedex Vue 3 application includes several reusable components that handle common UI patterns and functionality. These components follow Vue 3 Composition API best practices and are designed to be easily integrated throughout the application.
+
+## Available Components
+
+<CardGroup cols={2}>
+  <Card title="Paginacion" icon="arrow-left-right" href="/components/pagination">
+    Navigation controls for paginating through Pokemon lists with previous and next buttons
+  </Card>
+  
+  <Card title="NumPost" icon="list" href="/components/num-post">
+    Dropdown selector for controlling the number of items displayed per page
+  </Card>
+  
+  <Card title="Favoritos" icon="heart" href="/components/favoritos">
+    Display and manage favorite Pokemon with integration to Pinia store
+  </Card>
+  
+  <Card title="VolverPokemons" icon="arrow-left" href="#navigation-components">
+    Simple navigation button to return to the Pokemon list view
+  </Card>
+  
+  <Card title="HelloWorld" icon="hand-wave" href="#welcome-components">
+    Welcome component with Pokemon-themed branding and animations
+  </Card>
+</CardGroup>
+
+## Component Architecture
+
+All components are built using Vue 3's Composition API with `<script setup>` syntax, providing:
+
+- **Type Safety**: Better TypeScript support and type inference
+- **Performance**: Improved compilation and runtime performance
+- **Simplicity**: Less boilerplate code and cleaner component definitions
+- **Composition**: Easy integration with composables and Pinia stores
+
+## Usage Pattern
+
+Components follow a consistent pattern for props and events:
+
+```vue
+<script setup>
+import ComponentName from '@/components/ComponentName.vue'
+
+const handleEvent = (value) => {
+  // Handle emitted event
+}
+</script>
+
+<template>
+  <ComponentName 
+    :prop-name="propValue"
+    @event-name="handleEvent"
+  />
+</template>
+```
+
+## Navigation Components
+
+### VolverPokemons
+
+A simple button component that navigates back to the Pokemon list using Vue Router:
+
+```vue
+<script setup>
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const volver = () => {
+  router.push("/pokemons")
+}
+</script>
+
+<template>
+  <button @click="volver">Volver</button>
+</template>
+```
+
+## Welcome Components
+
+### HelloWorld
+
+A welcome screen component featuring the Vue logo and Pokemon-themed branding with gradient text effects and smooth animations. Perfect for landing pages and introduction screens.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Pagination Component" href="/components/pagination">
+    Learn how to implement pagination controls
+  </Card>
+  
+  <Card title="NumPost Component" href="/components/num-post">
+    Configure items per page selection
+  </Card>
+</CardGroup>

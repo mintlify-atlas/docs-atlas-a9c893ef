@@ -1,0 +1,289 @@
+---
+title: Routing
+description: Learn about Vue Router setup, route configuration, and navigation in the Pokedex application
+---
+
+The Pokedex application uses Vue Router 4 for client-side routing. All routes use lazy loading for optimal performance.
+
+## Router Configuration
+
+The router is configured in `src/router/index.js`:
+
+```javascript src/router/index.js
+import { createRouter, createWebHistory } from 'vue-router'
+
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes: [
+    {
+      path: '/',
+      name: 'home',
+      component: () => import('../views/HomeView.vue'), 
+    },
+    {
+      path: '/about',
+      name: 'about',
+      component: () => import('../views/AboutView.vue'),
+    },
+    {
+      path: '/pokemons',
+      name: 'pokemons',
+      component: () => import('../views/PokemonsView.vue'),
+    },
+    {
+      path: '/favoritos',
+      name: 'favoritos',
+      component: () => import('../views/FavoritosView.vue'),
+    },
+    {
+      path: '/pokemons/:nombre',
+      name: 'poke',
+      component: () => import('../views/PokeView.vue'),
+    },
+    {
+      path: '/pokemons/PokeNotFound',
+      name: 'PokeNotFound',
+      component: () => import('../views/PokeNotFountView.vue'),
+    },
+    {
+      path: '/pokemons/ability/:habilidad',
+      name: 'habilidad',
+      component: () => import('../views/HabilidadView.vue'),
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: "NotFound",
+      component: () => import("../views/NotFoundView.vue"),
+    },
+  ],
+})
+
+export default router
+```
+
+## Route Definitions
+
+<AccordionGroup>
+  <Accordion title="/ - Home">
+    **Name:** `home`
+    
+    **Component:** `HomeView.vue`
+    
+    Landing page of the application.
+  </Accordion>
+
+  <Accordion title="/about - About">
+    **Name:** `about`
+    
+    **Component:** `AboutView.vue`
+    
+    Information about the application.
+  </Accordion>
+
+  <Accordion title="/pokemons - Pokemon List">
+    **Name:** `pokemons`
+    
+    **Component:** `PokemonsView.vue`
+    
+    Main Pokedex view with searchable, paginated Pokemon list.
+  </Accordion>
+
+  <Accordion title="/favoritos - Favorites">
+    **Name:** `favoritos`
+    
+    **Component:** `FavoritosView.vue`
+    
+    Display user's favorite Pokemon from the Pinia store.
+  </Accordion>
+
+  <Accordion title="/pokemons/:nombre - Pokemon Detail">
+    **Name:** `poke`
+    
+    **Component:** `PokeView.vue`
+    
+    **Dynamic Parameter:** `:nombre` - Pokemon name
+    
+    Displays detailed information for a specific Pokemon including stats, abilities, and moves.
+    
+    **Example:** `/pokemons/pikachu`
+  </Accordion>
+
+  <Accordion title="/pokemons/PokeNotFound - Pokemon Not Found">
+    **Name:** `PokeNotFound`
+    
+    **Component:** `PokeNotFountView.vue`
+    
+    Error page when a Pokemon cannot be found.
+  </Accordion>
+
+  <Accordion title="/pokemons/ability/:habilidad - Pokemon by Ability">
+    **Name:** `habilidad`
+    
+    **Component:** `HabilidadView.vue`
+    
+    **Dynamic Parameter:** `:habilidad` - Ability name
+    
+    Shows all Pokemon with a specific ability.
+    
+    **Example:** `/pokemons/ability/overgrow`
+  </Accordion>
+
+  <Accordion title="/* - 404 Not Found">
+    **Name:** `NotFound`
+    
+    **Component:** `NotFoundView.vue`
+    
+    **Pattern:** `:pathMatch(.*)*`
+    
+    Catch-all route for undefined paths.
+  </Accordion>
+</AccordionGroup>
+
+## Lazy Loading
+
+All routes use dynamic imports for code splitting:
+
+```javascript
+component: () => import('../views/HomeView.vue')
+```
+
+<Card title="Benefits" icon="bolt">
+  - **Faster initial load** - Only the required route code is loaded
+  - **Smaller bundles** - Each route generates a separate chunk
+  - **Better performance** - Routes are loaded on-demand when visited
+</Card>
+
+## Navigation in Components
+
+The application uses Vue Router's composition API and component features:
+
+### Using RouterLink
+
+```vue
+<template>
+  <RouterLink to="/pokemons" class="back-link">
+    ← Volver a la Pokédex
+  </RouterLink>
+</template>
+```
+
+### Dynamic Route Links
+
+```vue src/views/PokemonsView.vue
+<router-link 
+  v-for="poke in filteredPokemons" 
+  :key="poke.name"
+  :to="`/pokemons/${poke.name}`"
+  class="pokemon-card"
+>
+  <!-- Pokemon card content -->
+</router-link>
+```
+
+### Accessing Route Parameters
+
+```vue src/views/PokeView.vue
+<script setup>
+import { useRoute } from 'vue-router'
+import { useGetData } from '@/composables/useGetData'
+
+const route = useRoute()
+const { getData, datos, error, cargando } = useGetData()
+
+// Access the :nombre parameter
+getData(`https://pokeapi.co/api/v2/pokemon/${route.params.nombre}`)
+</script>
+```
+
+### Programmatic Navigation
+
+```vue
+<script setup>
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const goToPokemons = () => {
+  router.push('/pokemons')
+}
+
+const goToPokemon = (name) => {
+  router.push({ name: 'poke', params: { nombre: name } })
+}
+</script>
+```
+
+## History Mode
+
+The router uses HTML5 History mode:
+
+```javascript
+history: createWebHistory(import.meta.env.BASE_URL)
+```
+
+<Card title="History Mode" icon="clock-rotate-left">
+  - Clean URLs without hash (`#`)
+  - Uses browser's History API
+  - Requires server configuration for SPA fallback
+  - Better SEO compared to hash mode
+</Card>
+
+## Route Examples
+
+| Route | Description | Example |
+|-------|-------------|----------|
+| `/` | Home page | N/A |
+| `/pokemons` | Pokemon list | N/A |
+| `/pokemons/:nombre` | Pokemon detail | `/pokemons/charizard` |
+| `/pokemons/ability/:habilidad` | Pokemon by ability | `/pokemons/ability/blaze` |
+| `/favoritos` | Favorites | N/A |
+| `/*` | 404 error | `/invalid-path` |
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use Named Routes">
+    Named routes are more maintainable than path strings:
+    
+    ```javascript
+    // Good
+    router.push({ name: 'poke', params: { nombre: 'pikachu' } })
+    
+    // Avoid
+    router.push('/pokemons/pikachu')
+    ```
+  </Accordion>
+
+  <Accordion title="Validate Route Parameters">
+    Always validate dynamic parameters before using them:
+    
+    ```javascript
+    const route = useRoute()
+    if (!route.params.nombre) {
+      router.push({ name: 'PokeNotFound' })
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Handle Loading States">
+    Show loading indicators when fetching route data:
+    
+    ```vue
+    <div v-if="cargando" class="loading">
+      <div class="spinner"></div>
+      <p>Cargando Pokémon...</p>
+    </div>
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="State Management" icon="database" href="/architecture/state-management">
+    Learn about Pinia stores for global state
+  </Card>
+  <Card title="Composables" icon="puzzle-piece" href="/architecture/composables">
+    Explore reusable composition functions
+  </Card>
+</CardGroup>

@@ -1,0 +1,260 @@
+---
+title: Build & Deployment
+description: Build the application for production and deploy to Netlify
+---
+
+This guide covers building the Pokedex Vue 3 application for production and deploying it to hosting platforms.
+
+## Production Build
+
+### Building the Application
+
+To create an optimized production build, run:
+
+```bash
+npm run build
+```
+
+This command uses Vite to:
+- Bundle and minify your JavaScript and CSS
+- Optimize assets and images
+- Generate production-ready files in the `dist/` directory
+- Tree-shake unused code for smaller bundle sizes
+
+### Build Output
+
+After running the build command, you'll find the compiled files in the `dist/` directory:
+
+```
+dist/
+├── assets/
+│   ├── index-[hash].js
+│   ├── index-[hash].css
+│   └── [other-assets]
+├── index.html
+└── favicon.ico
+```
+
+<Info>
+  Vite automatically adds content hashes to filenames for optimal browser caching.
+</Info>
+
+## Preview Production Build Locally
+
+Before deploying, you can preview the production build locally:
+
+```bash
+npm run preview
+```
+
+This starts a local static web server that serves the built files from `dist/` at `http://localhost:4173`.
+
+<Note>
+  The preview server is meant for previewing the build locally and should not be used as a production server.
+</Note>
+
+## Deployment to Netlify
+
+The Pokedex application is deployed to Netlify. You can view the live application at:
+
+**Live URL**: [https://pokedex-eliasmari.netlify.app](https://pokedex-eliasmari.netlify.app)
+
+### Deployment Options
+
+<Steps>
+  <Step title="Option 1: Deploy via Git (Recommended)">
+    Connect your Git repository to Netlify for automatic deployments:
+    
+    1. Push your code to GitHub, GitLab, or Bitbucket
+    2. Log in to [Netlify](https://netlify.com)
+    3. Click "Add new site" → "Import an existing project"
+    4. Select your Git provider and repository
+    5. Configure build settings:
+       - **Build command**: `npm run build`
+       - **Publish directory**: `dist`
+    6. Click "Deploy site"
+  </Step>
+
+  <Step title="Option 2: Deploy via Netlify CLI">
+    Deploy directly from your terminal:
+    
+    ```bash
+    # Install Netlify CLI globally
+    npm install -g netlify-cli
+    
+    # Build the application
+    npm run build
+    
+    # Deploy to Netlify
+    netlify deploy --prod
+    ```
+    
+    Follow the prompts to link your site or create a new one.
+  </Step>
+
+  <Step title="Option 3: Manual Deploy">
+    Deploy by dragging and dropping:
+    
+    1. Build your application: `npm run build`
+    2. Go to [Netlify Drop](https://app.netlify.com/drop)
+    3. Drag the `dist/` folder to the upload area
+  </Step>
+</Steps>
+
+## Netlify Configuration
+
+For optimal deployment, create a `netlify.toml` file in your project root:
+
+```toml
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+```
+
+<Warning>
+  The redirect rule is crucial for Vue Router's history mode to work correctly. Without it, direct navigation to routes will result in 404 errors.
+</Warning>
+
+### Why Redirects Matter
+
+Vue Router uses HTML5 history mode, which means:
+- URLs look clean (e.g., `/pokemons/pikachu` instead of `/#/pokemons/pikachu`)
+- Direct navigation to routes requires server-side configuration
+- The redirect rule ensures all routes are handled by `index.html`
+
+## Environment Variables
+
+If your application uses environment variables:
+
+<CodeGroup>
+```bash .env.production
+VITE_API_BASE_URL=https://pokeapi.co/api/v2
+```
+
+```javascript Usage in Code
+const apiUrl = import.meta.env.VITE_API_BASE_URL
+```
+</CodeGroup>
+
+<Note>
+  Environment variables in Vite must be prefixed with `VITE_` to be exposed to your client-side code.
+</Note>
+
+### Setting Environment Variables in Netlify
+
+1. Go to your site in Netlify
+2. Navigate to "Site configuration" → "Environment variables"
+3. Add your variables with the `VITE_` prefix
+
+## Build Optimizations
+
+### Vite Build Features
+
+Vite provides several optimizations out of the box:
+
+- **Code Splitting**: Automatic chunking for better caching
+- **Tree Shaking**: Removes unused code
+- **Minification**: Reduces file sizes
+- **Asset Optimization**: Compresses images and assets
+- **CSS Code Splitting**: Separates CSS for each component
+
+### Manual Optimization Tips
+
+<CodeGroup>
+```javascript Lazy Loading Routes
+// In src/router/index.js
+const routes = [
+  {
+    path: '/pokemons',
+    component: () => import('@/views/PokemonsView.vue')
+  }
+]
+```
+
+```javascript Image Optimization
+// Use lazy loading for images
+<img loading="lazy" :src="pokemonImage" :alt="pokemonName">
+```
+</CodeGroup>
+
+## Performance Checklist
+
+Before deploying to production:
+
+- [ ] Run `npm run build` without errors
+- [ ] Test the production build with `npm run preview`
+- [ ] Verify all routes work correctly
+- [ ] Check that API calls are using production endpoints
+- [ ] Test on multiple browsers and devices
+- [ ] Verify images and assets load correctly
+- [ ] Check console for any errors or warnings
+
+## Deployment Best Practices
+
+<Steps>
+  <Step title="Use Git-based Deployments">
+    Connect your Git repository to Netlify for automatic deployments on every push to the main branch.
+  </Step>
+
+  <Step title="Enable Deploy Previews">
+    Netlify automatically creates preview deployments for pull requests, allowing you to test changes before merging.
+  </Step>
+
+  <Step title="Monitor Build Logs">
+    Always check Netlify build logs to catch any deployment issues early.
+  </Step>
+
+  <Step title="Set Up Custom Domain">
+    Configure a custom domain in Netlify settings for a professional URL.
+  </Step>
+</Steps>
+
+## Continuous Deployment
+
+With Git-based deployment, your workflow becomes:
+
+```bash
+git add .
+git commit -m "Add new feature"
+git push origin main
+```
+
+Netlify will automatically:
+1. Detect the push
+2. Run `npm run build`
+3. Deploy the `dist/` folder
+4. Update your live site
+
+## Troubleshooting Deployment
+
+### Common Build Errors
+
+<Warning>
+  **Build fails with "Module not found"**
+  
+  Ensure all dependencies are in `dependencies` (not `devDependencies`) if they're needed at runtime.
+</Warning>
+
+### 404 Errors on Routes
+
+If you get 404 errors when navigating directly to routes:
+- Verify your `netlify.toml` redirect rule is in place
+- Check that the redirect rule uses status `200` (not `301` or `302`)
+
+### Cache Issues
+
+If changes don't appear after deployment:
+- Clear your browser cache
+- Use Netlify's "Clear cache and deploy site" option
+- Check that asset hashes are updating in filenames
+
+## Next Steps
+
+- Learn about [PokeAPI Integration](/development/pokeapi-integration) to understand data fetching
+- Review [Development Setup](/development/setup) for local development
+- Explore Netlify's [documentation](https://docs.netlify.com/) for advanced features

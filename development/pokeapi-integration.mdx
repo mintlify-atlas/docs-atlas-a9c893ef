@@ -1,0 +1,400 @@
+---
+title: PokeAPI Integration
+description: How the Pokedex application integrates with PokeAPI for fetching Pokemon data
+---
+
+The Pokedex Vue 3 application uses [PokeAPI](https://pokeapi.co/) as its data source for all Pokemon information. This guide explains how the API integration works.
+
+## API Overview
+
+**Base URL**: `https://pokeapi.co/api/v2`
+
+PokeAPI is a free RESTful Pokemon API that provides:
+- Pokemon data (stats, abilities, types, sprites)
+- Ability information
+- Move details
+- Type information
+- And much more
+
+<Info>
+  PokeAPI is completely free and open-source. No authentication or API keys are required.
+</Info>
+
+## API Endpoints Used
+
+The application primarily uses the following PokeAPI endpoints:
+
+### 1. List Pokemon
+
+```
+GET https://pokeapi.co/api/v2/pokemon?offset={offset}&limit={limit}
+```
+
+Returns a paginated list of Pokemon.
+
+**Parameters**:
+- `offset`: Number of Pokemon to skip (for pagination)
+- `limit`: Number of Pokemon to return (default: 20)
+
+**Example Response**:
+```json
+{
+  "count": 1281,
+  "next": "https://pokeapi.co/api/v2/pokemon?offset=20&limit=20",
+  "previous": null,
+  "results": [
+    {
+      "name": "bulbasaur",
+      "url": "https://pokeapi.co/api/v2/pokemon/1/"
+    }
+  ]
+}
+```
+
+### 2. Get Pokemon Details
+
+```
+GET https://pokeapi.co/api/v2/pokemon/{name-or-id}
+```
+
+Returns detailed information about a specific Pokemon.
+
+**Example**: `https://pokeapi.co/api/v2/pokemon/pikachu`
+
+### 3. Get Ability Details
+
+```
+GET https://pokeapi.co/api/v2/ability/{ability-name}
+```
+
+Returns information about a specific ability, including all Pokemon that have it.
+
+**Example**: `https://pokeapi.co/api/v2/ability/static`
+
+## Data Fetching Implementation
+
+### useGetData Composable
+
+The application uses a reusable composable for data fetching located at `src/composables/useGetData.js`:
+
+```javascript
+import axios from 'axios'
+import { ref } from 'vue'
+
+export const useGetData = () => {
+    const datos = ref(null);
+    const cargando = ref(true);
+    const error = ref(false);
+
+    const getData = async (url) => {
+        try {
+            const resultado = await axios.get(url);
+            datos.value = resultado.data;
+        }
+        catch (err) {
+            console.log(err);
+            error.value = true;
+        } finally {
+            cargando.value = false;
+        }
+    };
+    
+    return {
+        getData,
+        datos,
+        error,
+        cargando
+    }
+};
+```
+
+### Key Features
+
+- **Reactive State**: Uses Vue 3 refs for reactive data
+- **Loading State**: Tracks loading status with `cargando`
+- **Error Handling**: Captures and flags errors
+- **Reusability**: Can be used across multiple components
+- **Axios**: Uses Axios for HTTP requests
+
+## Usage Examples
+
+### Fetching Pokemon List
+
+From `src/views/PokemonsView.vue`:
+
+```javascript
+import { useGetData } from '@/composables/useGetData';
+
+const { getData, datos, error, cargando } = useGetData();
+const offset = ref(0);
+const limit = ref(20);
+
+const fetchPokemons = () => {
+    getData(`https://pokeapi.co/api/v2/pokemon?offset=${offset.value}&limit=${limit.value}`);
+};
+
+fetchPokemons();
+```
+
+### Fetching Pokemon Details
+
+From `src/views/PokeView.vue`:
+
+```javascript
+import { useRoute } from 'vue-router';
+import { useGetData } from '@/composables/useGetData';
+
+const route = useRoute();
+const { getData, datos, error, cargando } = useGetData();
+
+getData(`https://pokeapi.co/api/v2/pokemon/${route.params.nombre}`);
+```
+
+### Fetching Ability Information
+
+From `src/views/HabilidadView.vue`:
+
+```javascript
+import axios from 'axios';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
+const pokemons = ref([]);
+
+const getData = async () => {
+    try {
+        const { data } = await axios.get(
+            `https://pokeapi.co/api/v2/ability/${route.params.habilidad}`
+        );
+        pokemons.value = data.pokemon.map((item) => item.pokemon);
+    } catch (error) {
+        console.error('Error fetching Pokémon:', error);
+    }
+};
+
+getData();
+```
+
+## Loading States
+
+The application displays different UI states based on the data fetching status:
+
+<CodeGroup>
+```vue Loading State
+<div v-if="cargando" class="loading">
+    <div class="spinner"></div>
+    <p>Cargando Pokémons...</p>
+</div>
+```
+
+```vue Error State
+<div v-else-if="error" class="error">
+    <p>Error al cargar los Pokémons. Inténtalo de nuevo más tarde.</p>
+</div>
+```
+
+```vue Success State
+<div v-else class="pokemon-grid">
+    <router-link 
+        v-for="poke in datos.results" 
+        :key="poke.name"
+        :to="`/pokemons/${poke.name}`"
+    >
+        {{ poke.name }}
+    </router-link>
+</div>
+```
+</CodeGroup>
+
+## Advanced Features
+
+### Pagination Implementation
+
+The Pokemon list view implements pagination:
+
+```javascript
+const offset = ref(0);
+const limit = ref(20);
+
+const next = () => {
+    offset.value += limit.value;
+    fetchPokemons();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+const prev = () => {
+    if (offset.value >= limit.value) {
+        offset.value -= limit.value;
+        fetchPokemons();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+};
+```
+
+### Search Functionality
+
+The app implements client-side search by fetching all Pokemon names:
+
+```javascript
+const allPokemons = ref([]);
+const searchQuery = ref('');
+
+const fetchAllPokemons = async () => {
+    try {
+        const response = await fetch(
+            'https://pokeapi.co/api/v2/pokemon?limit=1000'
+        );
+        const data = await response.json();
+        allPokemons.value = data.results;
+    } catch (err) {
+        console.error('Error fetching all pokemons:', err);
+    }
+};
+
+const filteredPokemons = computed(() => {
+    if (!datos.value?.results) return [];
+    
+    if (searchQuery.value.trim() === '') {
+        return datos.value.results;
+    }
+    
+    const query = searchQuery.value.toLowerCase();
+    return allPokemons.value.filter(pokemon => 
+        pokemon.name.toLowerCase().includes(query)
+    );
+});
+```
+
+## Image Assets
+
+Pokemon images are loaded from PokeAPI's sprite repository:
+
+### Official Artwork
+
+```javascript
+const imageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonId}.png`
+```
+
+### Extracting Pokemon ID from URL
+
+```javascript
+const pokemonId = poke.url.split('/')[6]
+```
+
+### Image Error Handling
+
+```vue
+<img 
+    :src="pokemonImage" 
+    :alt="pokemon.name"
+    @error="$event.target.src='https://via.placeholder.com/150?text=?'"
+>
+```
+
+## Error Handling
+
+<Warning>
+  Always implement proper error handling when working with external APIs to ensure a good user experience.
+</Warning>
+
+### Error Handling Best Practices
+
+1. **Try-Catch Blocks**: Wrap API calls in try-catch
+2. **User Feedback**: Display user-friendly error messages
+3. **Fallback UI**: Show placeholder images/content on errors
+4. **Console Logging**: Log errors for debugging
+
+```javascript
+try {
+    const resultado = await axios.get(url);
+    datos.value = resultado.data;
+} catch (err) {
+    console.error('API Error:', err);
+    error.value = true;
+    // Display user-friendly error message
+} finally {
+    cargando.value = false;
+}
+```
+
+## Caching Considerations
+
+<Note>
+  PokeAPI data rarely changes, making it an excellent candidate for caching strategies.
+</Note>
+
+### Potential Caching Strategies
+
+While not currently implemented, you could add:
+
+1. **LocalStorage Caching**: Store fetched Pokemon data
+2. **Service Workers**: Cache API responses offline
+3. **Pinia Store**: Cache in global state management
+4. **HTTP Cache Headers**: Leverage browser caching
+
+### Example: LocalStorage Caching
+
+```javascript
+const getData = async (url) => {
+    // Check cache first
+    const cached = localStorage.getItem(url);
+    if (cached) {
+        datos.value = JSON.parse(cached);
+        cargando.value = false;
+        return;
+    }
+    
+    try {
+        const resultado = await axios.get(url);
+        datos.value = resultado.data;
+        // Cache the result
+        localStorage.setItem(url, JSON.stringify(resultado.data));
+    } catch (err) {
+        error.value = true;
+    } finally {
+        cargando.value = false;
+    }
+};
+```
+
+## API Rate Limiting
+
+<Info>
+  PokeAPI has fair-use rate limiting. For production apps with high traffic, consider caching or running your own instance.
+</Info>
+
+### Best Practices
+
+- Implement caching to reduce API calls
+- Avoid making unnecessary duplicate requests
+- Consider pagination for large datasets
+- Use the search endpoint efficiently
+
+## Testing API Integration
+
+You can test PokeAPI endpoints directly:
+
+<CodeGroup>
+```bash cURL Example
+curl https://pokeapi.co/api/v2/pokemon/pikachu
+```
+
+```javascript Browser Console
+fetch('https://pokeapi.co/api/v2/pokemon/pikachu')
+  .then(res => res.json())
+  .then(data => console.log(data))
+```
+</CodeGroup>
+
+## Resources
+
+- [PokeAPI Documentation](https://pokeapi.co/docs/v2)
+- [PokeAPI GitHub](https://github.com/PokeAPI/pokeapi)
+- [Axios Documentation](https://axios-http.com/)
+- [Vue 3 Composables Guide](https://vuejs.org/guide/reusability/composables.html)
+
+## Next Steps
+
+- Review [Development Setup](/development/setup) to configure your local environment
+- Learn about [Build & Deployment](/development/build-deploy) for production releases
+- Explore the source code in `src/composables/` and `src/views/` for implementation details

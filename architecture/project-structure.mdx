@@ -1,0 +1,154 @@
+---
+title: Project Structure
+description: Learn about the organization and directory structure of the Pokedex Vue 3 application
+---
+
+The Pokedex application follows Vue 3's recommended project structure with clear separation of concerns. This guide explains how the codebase is organized.
+
+## Directory Overview
+
+The source code is organized into logical directories under `src/`:
+
+```
+src/
+├── assets/          # Static assets (images, styles)
+│   ├── styles/      # CSS stylesheets
+│   │   ├── base/    # Base styles (reset, variables, layout)
+│   │   └── utils/   # Utility styles (animations, utilities)
+│   ├── logo.svg
+│   └── pokeball.png
+├── components/      # Reusable Vue components
+│   ├── icons/       # SVG icon components
+│   ├── Favoritos.vue
+│   ├── NumPost.vue
+│   ├── Paginacion.vue
+│   └── VolverPokemons.vue
+├── composables/     # Composition API logic
+│   └── useGetData.js
+├── router/          # Vue Router configuration
+│   └── index.js
+├── stores/          # Pinia state management
+│   └── favoritos.js
+├── views/           # Page-level components
+│   ├── HomeView.vue
+│   ├── PokemonsView.vue
+│   ├── PokeView.vue
+│   ├── FavoritosView.vue
+│   ├── HabilidadView.vue
+│   ├── AboutView.vue
+│   └── NotFoundView.vue
+├── App.vue          # Root component
+└── main.js          # Application entry point
+```
+
+## Directory Purposes
+
+<AccordionGroup>
+  <Accordion title="assets/">
+    Contains static files like images, fonts, and global stylesheets. The styles are organized into:
+    - **base/**: Foundation styles including CSS reset, typography, layout, and CSS variables
+    - **utils/**: Utility classes and animations for reusable styling patterns
+  </Accordion>
+
+  <Accordion title="components/">
+    Reusable Vue components that can be used across multiple views:
+    - `Favoritos.vue` - Favorites button/display component
+    - `NumPost.vue` - Posts per page selector
+    - `Paginacion.vue` - Pagination controls (next/previous)
+    - `VolverPokemons.vue` - Back to Pokemon list button
+    - `icons/` - SVG icon components
+  </Accordion>
+
+  <Accordion title="composables/">
+    Vue Composition API composables for reusable logic:
+    - `useGetData.js` - HTTP request handling with axios
+    
+    Composables encapsulate stateful logic that can be shared across components.
+  </Accordion>
+
+  <Accordion title="router/">
+    Vue Router configuration defining all application routes:
+    - `index.js` - Route definitions and router setup
+    
+    See [Routing](/architecture/routing) for details.
+  </Accordion>
+
+  <Accordion title="stores/">
+    Pinia stores for global state management:
+    - `favoritos.js` - Manages user's favorite Pokemon
+    
+    See [State Management](/architecture/state-management) for details.
+  </Accordion>
+
+  <Accordion title="views/">
+    Page-level components that represent routes:
+    - `HomeView.vue` - Landing page
+    - `PokemonsView.vue` - Pokemon list with search and pagination
+    - `PokeView.vue` - Individual Pokemon details
+    - `FavoritosView.vue` - User's favorite Pokemon
+    - `HabilidadView.vue` - Pokemon by ability
+    - `AboutView.vue` - About page
+    - `NotFoundView.vue` - 404 error page
+  </Accordion>
+</AccordionGroup>
+
+## Entry Point
+
+The application starts in `src/main.js`:
+
+```javascript src/main.js
+import './assets/main.css'
+
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+
+import App from './App.vue'
+import router from './router'
+
+const app = createApp(App)
+
+app.use(createPinia()) 
+app.use(router)
+
+app.mount('#app')
+```
+
+This file:
+1. Imports global styles
+2. Creates the Vue app instance
+3. Registers Pinia for state management
+4. Registers Vue Router for navigation
+5. Mounts the app to the DOM
+
+## Component Architecture
+
+<Card title="Component Hierarchy" icon="sitemap">
+  The application uses a hierarchical component structure:
+  - **App.vue** - Root component with router-view
+  - **Views** - Route-level components
+  - **Components** - Reusable UI elements
+  - **Composables** - Shared logic
+  - **Stores** - Global state
+</Card>
+
+## Best Practices
+
+- **Views** handle routing and page layout
+- **Components** are reusable and focused on a single responsibility
+- **Composables** extract and share reactive logic
+- **Stores** manage cross-component state
+- **Assets** are organized by type and purpose
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Routing" icon="route" href="/architecture/routing">
+    Learn about route configuration and navigation
+  </Card>
+  <Card title="State Management" icon="database" href="/architecture/state-management">
+    Understand Pinia stores and global state
+  </Card>
+  <Card title="Composables" icon="puzzle-piece" href="/architecture/composables">
+    Explore reusable composition functions
+  </Card>
+</CardGroup>

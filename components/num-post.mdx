@@ -1,0 +1,244 @@
+---
+title: NumPost Component
+description: Dropdown selector for controlling the number of items displayed per page
+---
+
+The `NumPost` component provides a dropdown selector that allows users to control how many items are displayed per page. It emits a change event when the user selects a different value, enabling dynamic adjustment of pagination limits.
+
+## Component Code
+
+Here's the complete implementation of the NumPost component:
+
+```vue NumPost.vue
+<script setup>
+    const emit = defineEmits(["cambio"])
+</script>
+
+<template>
+    <select @change="emit('cambio', tam)" v-model="tam">
+        <option disabled value="">Seleccciona nº post</option>
+        <option>10</option>
+        <option>15</option>
+        <option>20</option>
+    </select>
+</template>
+```
+
+## Props
+
+This component does not accept any props. It manages its own internal state using `v-model`.
+
+## Events
+
+<ParamField path="cambio" type="event">
+  Emitted when the user selects a different number from the dropdown. The event payload is the selected value ("10", "15", or "20").
+  
+  **Payload**: String representation of the selected number
+</ParamField>
+
+## Available Options
+
+The component provides three preset options for items per page:
+
+- **10 items**: Fewer items, more pages - good for mobile or slow connections
+- **15 items**: Balanced option for most screen sizes
+- **20 items**: More items, fewer pages - good for desktop with fast connections
+
+## Usage Example
+
+Here's how the NumPost component is used in the PokemonsView:
+
+```vue PokemonsView.vue
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useGetData } from '@/composables/useGetData'
+import NumPost from '@/components/NumPost.vue'
+import Paginacion from '@/components/Paginacion.vue'
+
+const { getData, datos } = useGetData()
+const offset = ref(0)
+const limit = ref(20)
+
+const fetchPokemons = () => {
+    getData(`https://pokeapi.co/api/v2/pokemon?offset=${offset.value}&limit=${limit.value}`)
+}
+
+const cambio = (num) => {
+    limit.value = parseInt(num)
+    offset.value = 0  // Reset to first page
+    fetchPokemons()
+}
+
+onMounted(() => {
+    fetchPokemons()
+})
+</script>
+
+<template>
+    <div class="controls">
+        <div class="controls-left">
+            <NumPost @cambio="cambio" />
+        </div>
+        <div class="controls-right">
+            <Paginacion 
+                @next="next"
+                @prev="prev"
+                :inicio="datos?.previous"
+                :fin="datos?.next"
+            />
+        </div>
+    </div>
+</template>
+```
+
+## Complete Integration Example
+
+Here's a complete example showing NumPost working with Paginacion:
+
+<Tabs>
+  <Tab title="Template">
+    ```vue
+    <template>
+        <div class="pokedex-header">
+            <h1>Pokédex</h1>
+            
+            <div class="controls">
+                <div class="controls-left">
+                    <NumPost @cambio="cambio" />
+                </div>
+                <div class="controls-right">
+                    <Paginacion 
+                        @next="next"
+                        @prev="prev"
+                        :inicio="datos?.previous"
+                        :fin="datos?.next"
+                    />
+                </div>
+            </div>
+        </div>
+        
+        <div class="pokemon-grid">
+            <router-link 
+                v-for="poke in filteredPokemons" 
+                :key="poke.name"
+                :to="`/pokemons/${poke.name}`"
+                class="pokemon-card"
+            >
+                <!-- Pokemon card content -->
+            </router-link>
+        </div>
+    </template>
+    ```
+  </Tab>
+  
+  <Tab title="Script">
+    ```vue
+    <script setup>
+    import { ref, onMounted } from 'vue'
+    import { useGetData } from '@/composables/useGetData'
+    import Paginacion from '@/components/Paginacion.vue'
+    import NumPost from '@/components/NumPost.vue'
+
+    const { getData, datos, error, cargando } = useGetData()
+    const offset = ref(0)
+    const limit = ref(20)
+
+    onMounted(() => {
+        fetchPokemons()
+    })
+
+    const fetchPokemons = () => {
+        getData(`https://pokeapi.co/api/v2/pokemon?offset=${offset.value}&limit=${limit.value}`)
+    }
+
+    const next = () => {
+        offset.value += limit.value
+        fetchPokemons()
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+
+    const prev = () => {
+        if (offset.value >= limit.value) {
+            offset.value -= limit.value
+            fetchPokemons()
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+        }
+    }
+
+    const cambio = (num) => {
+        limit.value = parseInt(num)
+        offset.value = 0  // Reset to first page when changing limit
+        fetchPokemons()
+    }
+    </script>
+    ```
+  </Tab>
+</Tabs>
+
+## Behavior
+
+<AccordionGroup>
+  <Accordion title="State Management">
+    The component uses a local reactive variable `tam` with `v-model` to track the selected value. This value is automatically bound to the select element and emitted when changed.
+  </Accordion>
+
+  <Accordion title="Event Flow">
+    1. User selects a different number from the dropdown
+    2. `v-model` updates the `tam` variable
+    3. `@change` event fires, emitting the `cambio` event with the new value
+    4. Parent component receives the event and updates its `limit` ref
+    5. Parent resets `offset` to 0 to show the first page
+    6. Parent fetches new data with updated limit
+  </Accordion>
+
+  <Accordion title="Default State">
+    The component shows "Seleccciona nº post" as a disabled placeholder option, guiding users to make a selection. The parent component typically initializes with a default value like 20.
+  </Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+<Warning>
+  Always reset the `offset` to 0 when handling the `cambio` event to prevent users from being on a page that doesn't exist with the new limit.
+</Warning>
+
+<Tip>
+  Convert the emitted string value to an integer using `parseInt()` before using it in API calls or calculations.
+</Tip>
+
+<Note>
+  The component emits the value immediately on change, so consider adding loading states in the parent component while fetching new data.
+</Note>
+
+## Customization
+
+You can easily customize the available options by modifying the template:
+
+```vue
+<template>
+    <select @change="emit('cambio', tam)" v-model="tam">
+        <option disabled value="">Selecciona nº post</option>
+        <option>5</option>
+        <option>10</option>
+        <option>25</option>
+        <option>50</option>
+        <option>100</option>
+    </select>
+</template>
+```
+
+## Styling
+
+The component renders a standard HTML `<select>` element that can be styled using CSS. Target it with class selectors from the parent component or apply global styles.
+
+## Integration with API
+
+The selected value directly maps to the `limit` parameter in the PokeAPI:
+
+```javascript
+// When user selects "10"
+const url = `https://pokeapi.co/api/v2/pokemon?offset=0&limit=10`
+
+// When user selects "20"
+const url = `https://pokeapi.co/api/v2/pokemon?offset=0&limit=20`
+```

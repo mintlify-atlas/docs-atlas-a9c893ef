@@ -1,0 +1,362 @@
+---
+title: Pokemon Details
+description: Comprehensive Pokemon detail view with tabs, stats visualization, and type-based theming
+---
+
+The Pokemon detail page provides in-depth information about each Pokemon with a beautiful, type-themed interface.
+
+## Overview
+
+The detail view includes:
+
+- Dynamic type-based color theming
+- Tabbed interface (About, Stats, Moves)
+- Visual stat bars
+- High-quality Pokemon artwork
+- Ability links
+- Add to favorites functionality
+
+## Type-Based Theming
+
+Each Pokemon's primary type determines the color scheme:
+
+```javascript
+const typeColors = {
+    normal: '#A8A77A',
+    fire: '#EE8130',
+    water: '#6390F0',
+    electric: '#F7D02C',
+    grass: '#7AC74C',
+    ice: '#96D9D6',
+    fighting: '#C22E28',
+    poison: '#A33EA1',
+    ground: '#E2BF65',
+    flying: '#A98FF3',
+    psychic: '#F95587',
+    bug: '#A6B91A',
+    rock: '#B6A136',
+    ghost: '#735797',
+    dragon: '#6F35FC',
+    dark: '#705746',
+    steel: '#B7B7CE',
+    fairy: '#D685AD',
+};
+
+const primaryColor = computed(() => {
+    if (!datos.value?.types) return '#777';
+    return typeColors[datos.value.types[0].type.name] || '#777';
+});
+```
+
+The primary color is applied using CSS custom properties:
+
+```vue
+<div class="pokemon-detail" :style="{ '--primary-color': primaryColor }">
+```
+
+## Header Section
+
+The header displays Pokemon name, image, types, and number:
+
+```vue
+<div class="pokemon-header">
+    <div class="pokemon-info">
+        <h1 class="pokemon-name">
+            {{ datos.name.charAt(0).toUpperCase() + datos.name.slice(1) }}
+        </h1>
+        <div class="pokemon-types">
+            <span 
+                v-for="type in datos.types" 
+                :key="type.slot"
+                class="type-badge"
+                :style="{ backgroundColor: typeColors[type.type.name] || '#777' }"
+            >
+                {{ type.type.name }}
+            </span>
+        </div>
+        <div class="pokemon-number">
+            #{{ ('000' + datos.id).slice(-3) }}
+        </div>
+    </div>
+    <div class="pokemon-image-container">
+        <img 
+            :src="datos.sprites.other['official-artwork'].front_default || datos.sprites.front_default" 
+            :alt="datos.name"
+            class="pokemon-main-image"
+        />
+    </div>
+</div>
+```
+
+<Info>
+The header uses a gradient background based on the Pokemon's primary type for a cohesive visual theme.
+</Info>
+
+## Tabbed Interface
+
+The detail view uses a custom tab system:
+
+```javascript
+const activeTab = ref('about');
+```
+
+```vue
+<div class="tabs">
+    <button 
+        :class="['tab-button', { active: activeTab === 'about' }]"
+        @click="activeTab = 'about'"
+    >
+        Acerca de
+    </button>
+    <button 
+        :class="['tab-button', { active: activeTab === 'stats' }]"
+        @click="activeTab = 'stats'"
+    >
+        Estadísticas
+    </button>
+    <button 
+        :class="['tab-button', { active: activeTab === 'moves' }]"
+        @click="activeTab = 'moves'"
+    >
+        Movimientos
+    </button>
+</div>
+```
+
+## About Tab
+
+Displays basic Pokemon information:
+
+```vue
+<div v-if="activeTab === 'about'" class="about-tab">
+    <div class="info-row">
+        <span class="info-label">Altura:</span>
+        <span class="info-value">{{ (datos.height / 10).toFixed(1) }} m</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Peso:</span>
+        <span class="info-value">{{ (datos.weight / 10).toFixed(1) }} kg</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Habilidades:</span>
+        <div class="abilities">
+            <RouterLink 
+                v-for="ability in datos.abilities" 
+                :key="ability.ability.name"
+                :to="`/pokemons/ability/${ability.ability.name}`"
+                class="ability-link"
+            >
+                {{ ability.ability.name.replace('-', ' ') }}
+            </RouterLink>
+        </div>
+    </div>
+</div>
+```
+
+<Note>
+Ability names are clickable links that navigate to the Ability Explorer to show all Pokemon with that ability.
+</Note>
+
+## Stats Tab
+
+Visualizes Pokemon base stats with animated bars:
+
+```javascript
+const stats = computed(() => {
+    if (!datos.value?.stats) return [];
+    return [
+        { name: 'HP', value: datos.value.stats[0].base_stat },
+        { name: 'Attack', value: datos.value.stats[1].base_stat },
+        { name: 'Defense', value: datos.value.stats[2].base_stat },
+        { name: 'Sp. Atk', value: datos.value.stats[3].base_stat },
+        { name: 'Sp. Def', value: datos.value.stats[4].base_stat },
+        { name: 'Speed', value: datos.value.stats[5].base_stat },
+    ];
+});
+```
+
+```vue
+<div v-else-if="activeTab === 'stats'" class="stats-tab">
+    <div v-for="stat in stats" :key="stat.name" class="stat-row">
+        <span class="stat-name">{{ stat.name }}</span>
+        <div class="stat-bar-container">
+            <div 
+                class="stat-bar" 
+                :style="{ 
+                    width: `${Math.min(100, (stat.value / 255) * 100)}%`,
+                    backgroundColor: primaryColor 
+                }"
+            ></div>
+        </div>
+        <span class="stat-value">{{ stat.value }}</span>
+    </div>
+</div>
+```
+
+## Moves Tab
+
+Displays a grid of Pokemon moves:
+
+```vue
+<div v-else-if="activeTab === 'moves'" class="moves-tab">
+    <div class="moves-grid">
+        <span 
+            v-for="(move, index) in datos.moves.slice(0, 20)" 
+            :key="index"
+            class="move-tag"
+        >
+            {{ move.move.name.replace('-', ' ') }}
+        </span>
+    </div>
+</div>
+```
+
+<Info>
+Only the first 20 moves are displayed to keep the interface clean and performant.
+</Info>
+
+## Tab Styling
+
+<Tabs>
+  <Tab title="Tab Buttons">
+    ```css
+    .tab-button {
+        padding: 10px 20px;
+        background: none;
+        border: none;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #a0aec0;
+        cursor: pointer;
+        position: relative;
+        transition: all 0.2s ease;
+    }
+    
+    .tab-button.active {
+        color: #63b3ed;
+    }
+    
+    .tab-button.active::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background-color: #63b3ed;
+        border-radius: 3px 3px 0 0;
+    }
+    ```
+  </Tab>
+  <Tab title="Stat Bars">
+    ```css
+    .stat-bar-container {
+        flex: 1;
+        height: 8px;
+        background-color: #1a202c;
+        border-radius: 4px;
+        margin: 0 15px;
+        overflow: hidden;
+        border: 1px solid #4a5568;
+    }
+    
+    .stat-bar {
+        height: 100%;
+        border-radius: 2px;
+        /* Width and color set dynamically */
+    }
+    ```
+    
+    The stat bars are colored with the Pokemon's primary type color for consistency.
+  </Tab>
+  <Tab title="Move Tags">
+    ```css
+    .move-tag {
+        background-color: #1a202c;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        text-align: center;
+        color: #a0aec0;
+        text-transform: capitalize;
+        border: 1px solid #4a5568;
+        transition: all 0.2s ease;
+    }
+    
+    .move-tag:hover {
+        background-color: #2d3748;
+        color: #63b3ed;
+        border-color: #63b3ed;
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Data Loading
+
+The component fetches Pokemon data using the route parameter:
+
+```javascript
+import { useRoute } from 'vue-router';
+import { useGetData } from '@/composables/useGetData';
+
+const route = useRoute();
+const { getData, datos, error, cargando } = useGetData();
+
+getData(`https://pokeapi.co/api/v2/pokemon/${route.params.nombre}`);
+```
+
+## Loading and Error States
+
+```vue
+<div v-if="cargando" class="loading">
+    <div class="spinner"></div>
+    <p>Cargando información del Pokémon...</p>
+</div>
+
+<div v-else-if="error" class="error">
+    <p>No se pudo cargar la información del Pokémon.</p>
+    <RouterLink to="/pokemons" class="back-link">Volver a la Pokédex</RouterLink>
+</div>
+```
+
+## Responsive Design
+
+The detail view adapts to mobile screens:
+
+```css
+@media (max-width: 768px) {
+    .pokemon-name {
+        font-size: 2rem;
+    }
+    
+    .pokemon-content {
+        padding: 20px 15px;
+    }
+    
+    .tab-button {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+    
+    .info-row {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .moves-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+}
+```
+
+## Related Features
+
+<CardGroup cols={2}>
+  <Card title="Favorites" icon="heart" href="/features/favorites">
+    Add Pokemon to your favorites collection
+  </Card>
+  <Card title="Ability Explorer" icon="wand-magic-sparkles" href="/features/ability-explorer">
+    View all Pokemon with a specific ability
+  </Card>
+</CardGroup>
