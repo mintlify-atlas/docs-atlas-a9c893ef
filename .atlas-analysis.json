@@ -1,0 +1,76 @@
+{
+  "projectType": "frontend",
+  "projectName": "Pokedex",
+  "projectDescription": "A modern Vue 3 Pokédex application for browsing, searching, and managing favorite Pokémon with data from PokeAPI",
+  "theme": "palm",
+  "primaryColor": "#43b883",
+  "lightColor": "#3c8772",
+  "darkColor": "#344e5e",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Getting Started",
+        "pages": [
+          "introduction",
+          "installation",
+          "quick-start"
+        ]
+      },
+      {
+        "group": "Features",
+        "pages": [
+          "features/pokemon-browser",
+          "features/search-filter",
+          "features/favorites",
+          "features/pokemon-details",
+          "features/ability-explorer"
+        ]
+      },
+      {
+        "group": "Components",
+        "pages": [
+          "components/overview",
+          "components/pagination",
+          "components/num-post",
+          "components/favoritos"
+        ]
+      },
+      {
+        "group": "Architecture",
+        "pages": [
+          "architecture/project-structure",
+          "architecture/state-management",
+          "architecture/routing",
+          "architecture/composables"
+        ]
+      },
+      {
+        "group": "Development",
+        "pages": [
+          "development/setup",
+          "development/build-deploy",
+          "development/pokeapi-integration"
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Browse and search 1000+ Pokémon with pagination",
+    "View detailed Pokémon information including stats, types, abilities, and moves",
+    "Save and manage favorite Pokémon with Pinia state management",
+    "Filter Pokémon by abilities",
+    "Real-time search across all Pokémon",
+    "Responsive design with dark theme"
+  ],
+  "publicApiSurface": [
+    "useGetData() composable - Data fetching utility",
+    "useFavoritosStore() - Favorites management store",
+    "PokemonsView - Main Pokémon list view",
+    "PokeView - Individual Pokémon details view",
+    "FavoritosView - Favorites collection view",
+    "HabilidadView - Ability-based filtering view",
+    "Paginacion component - Pagination controls",
+    "NumPost component - Items per page selector",
+    "Favoritos component - Favorites display"
+  ]
+}
